@@ -1,11 +1,13 @@
 package com.yn.figure.message;
 
+import java.io.Serializable;
+
 /**
  * @author yinan
  */
-public class Request {
+public class Request implements Serializable{
 
-    private static final long serialVersionUID = -5809782578272943999L;
+    private static final long serialVersionUID = 461450873709294807L;
 
     private String pic;
 

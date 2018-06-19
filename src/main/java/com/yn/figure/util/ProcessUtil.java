@@ -1,7 +1,10 @@
 package com.yn.figure.util;
 
+import com.alibaba.fastjson.JSONObject;
 import com.yn.figure.message.CosConfig;
 import net.coobird.thumbnailator.Thumbnails;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -17,6 +20,8 @@ import java.math.BigDecimal;
  */
 @Component
 public class ProcessUtil {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private ProcessUtil() {
 
@@ -35,12 +40,14 @@ public class ProcessUtil {
     public boolean generateImage(String imgStr, String fileName)
     {   //对字节数组字符串进行Base64解码并生成图片
         //图像数据为空
+        logger.info("Generate image ......");
         if (imgStr == null) {
             return false;
         }
         BASE64Decoder decoder = new BASE64Decoder();
         try {
             //Base64解码
+            logger.info("decode the byte ......");
             byte[] b = decoder.decodeBuffer(imgStr);
             for(int i=0;i<b.length;++i)
             {
@@ -55,11 +62,10 @@ public class ProcessUtil {
             out.write(b);
             out.flush();
             out.close();
+            logger.info("Generate image finished ......");
             return true;
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error("generate image error: {}", e.getMessage());
             return false;
         }
     }
@@ -92,16 +98,17 @@ public class ProcessUtil {
                     + "kb");
 
             // 1、先转换成jpg
+            logger.info("read the image ......");
             Thumbnails.of(srcPath).scale(1f).toFile(desPath);
             // 递归压缩，直到目标文件大小小于desFileSize
+            logger.info("compress image recursive ......");
             commpressPicCycle(desPath, desFileSize, accuracy);
 
             File desFile = new File(desPath);
-            System.out.println("目标图片：" + desPath + "，大小" + desFile.length()
+            logger.info("目标图片：" + desPath + "，大小" + desFile.length()
                     / 1024 + "kb");
-            System.out.println("图片压缩完成！");
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("compress image error: {}", e.getMessage());
             return null;
         }
         return desPath;
@@ -130,6 +137,30 @@ public class ProcessUtil {
         Thumbnails.of(desPath).size(desWidth, desHeight)
                 .outputQuality(accuracy).toFile(desPath);
         commpressPicCycle(desPath, desFileSize, accuracy);
+    }
+
+    public boolean validateSuffix(String filename) {
+        if (StringUtils.isEmpty(filename)) {
+            return false;
+        } else {
+            String []strings = filename.split("\\.");
+            return strings.length > 1;
+        }
+    }
+
+    public JSONObject strToJSONObject(String str) {
+
+        str = "{ \"" + "url" + "\"" +  ": \"" +  str + "\" }";
+        logger.info("get image url: {}", str);
+        return JSONObject.parseObject(str);
+    }
+
+    public String generateUrl(String fileName) {
+        StringBuilder stringBuffer = new StringBuilder("http://");
+        stringBuffer.append(cosConfig.getBucketName()).append(".").
+                append(cosConfig.getUrlRegion()).append(".")
+                .append("myqcloud.com/").append(fileName);
+        return stringBuffer.toString();
     }
 
 }

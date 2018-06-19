@@ -4,6 +4,8 @@ import com.qcloud.cos.COSClient;
 import com.qcloud.cos.model.PutObjectRequest;
 import com.yn.figure.message.CosConfig;
 import com.yn.figure.message.Request;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -22,6 +24,8 @@ public class FigureProcess {
     @Autowired
     private ClientFactory factory;
 
+    private Logger logger = LoggerFactory.getLogger(getClass());
+
     public void upload(Request request) {
         try {
             File localFile = new File(cosConfig.getPath() + request.getFileName());
@@ -29,8 +33,12 @@ public class FigureProcess {
             PutObjectRequest putObjectRequest = new PutObjectRequest(cosConfig.getBucketName(),
                     request.getFileName(), localFile);
             cosClient.putObject(putObjectRequest);
+            logger.info("upload image success!");
+            if (localFile.exists() && localFile.isFile()) {
+                localFile.delete();
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("upload image error: {}", e.getMessage());
         }
 
     }

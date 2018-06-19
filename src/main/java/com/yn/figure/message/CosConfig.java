@@ -26,6 +26,16 @@ public class CosConfig {
 
     private String accuracy;
 
+    private String urlRegion;
+
+    public String getUrlRegion() {
+        return urlRegion;
+    }
+
+    public void setUrlRegion(String urlRegion) {
+        this.urlRegion = urlRegion;
+    }
+
     public String getPath() {
         return path;
     }
