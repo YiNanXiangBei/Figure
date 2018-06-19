@@ -9,11 +9,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * @author yinan
@@ -22,6 +28,8 @@ import java.math.BigDecimal;
 public class ProcessUtil {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    private BlockingQueue<String> blockingQueue = new LinkedBlockingQueue<>(4);
 
     private ProcessUtil() {
 
@@ -37,8 +45,7 @@ public class ProcessUtil {
      * @param imgStr
      * @return
      */
-    public boolean generateImage(String imgStr, String fileName)
-    {   //对字节数组字符串进行Base64解码并生成图片
+    public boolean generateImage(String imgStr, String fileName) {   //对字节数组字符串进行Base64解码并生成图片
         //图像数据为空
         logger.info("Generate image ......");
         if (imgStr == null) {
@@ -70,6 +77,31 @@ public class ProcessUtil {
         }
     }
 
+    public String getImageStr(String imgName) {//将图片文件转化为字节数组字符串，并对其进行Base64编码处理
+        File localFile = new File(imgName);
+
+        InputStream in = null;
+        byte[] data = null;
+        // 读取图片字节数组
+        try {
+            in = new FileInputStream(imgName);
+            data = new byte[in.available()];
+            in.read(data);
+            in.close();
+        } catch (IOException e) {
+            logger.error("image to base64 error: {}", e.getMessage());
+        }
+        // 对字节数组Base64编码
+        BASE64Encoder encoder = new BASE64Encoder();
+        //删除文件
+        if (localFile.exists() && localFile.isFile()) {
+            localFile.delete();
+        }
+        // 返回Base64编码过的字节数组字符串
+        return data != null ? encoder.encode(data) : null;
+
+    }
+
     /**
      * 根据指定大小和指定精度压缩图片
      *
@@ -92,11 +124,6 @@ public class ProcessUtil {
             return null;
         }
         try {
-            File srcFile = new File(srcPath);
-            long srcFileSize = srcFile.length();
-            System.out.println("源图片：" + srcPath + "，大小：" + srcFileSize / 1024
-                    + "kb");
-
             // 1、先转换成jpg
             logger.info("read the image ......");
             Thumbnails.of(srcPath).scale(1f).toFile(desPath);
@@ -148,9 +175,20 @@ public class ProcessUtil {
         }
     }
 
-    public JSONObject strToJSONObject(String str) {
+    public JSONObject strToJSONObject(String str, String base64) {
+        if (blockingQueue != null && blockingQueue.size() == 4) {
+            try {
+                blockingQueue.take();
+            } catch (InterruptedException e) {
+                logger.error("remove value error: {}", e.getMessage());
+            }
+        }
+        if (blockingQueue != null) {
+            blockingQueue.offer(str);
+        }
 
-        str = "{ \"" + "url" + "\"" +  ": \"" +  str + "\" }";
+        base64 = base64.replaceAll("[\\r\\n]", "");
+        str = "{ \"" + "url" + "\"" +  ": \"" +  str + "\"" + "," + "\"" + "base64" + "\"" + ": \"" + base64 + "\"" +" }";
         logger.info("get image url: {}", str);
         return JSONObject.parseObject(str);
     }

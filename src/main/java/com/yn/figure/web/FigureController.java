@@ -41,7 +41,8 @@ public class FigureController {
                 logger.info("Begin to upload image ......");
                 figureProcess.upload(request);
                 return new Response(Constant.CREATED, Constant.MSG_CREATED, processUtil.strToJSONObject(processUtil.
-                        generateUrl(request.getFileName())));
+                        generateUrl(request.getFileName()), processUtil.
+                        getImageStr(cosConfig.getPath() + request.getFileName())));
             }
         }
         return new Response(Constant.BAD_REQUEST, Constant.MSG_BAD_REQUEST, null);

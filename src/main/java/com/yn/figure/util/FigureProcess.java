@@ -34,9 +34,6 @@ public class FigureProcess {
                     request.getFileName(), localFile);
             cosClient.putObject(putObjectRequest);
             logger.info("upload image success!");
-            if (localFile.exists() && localFile.isFile()) {
-                localFile.delete();
-            }
         } catch (Exception e) {
             logger.error("upload image error: {}", e.getMessage());
         }
