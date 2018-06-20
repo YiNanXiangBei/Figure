@@ -9,6 +9,7 @@ import com.yn.figure.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,6 +34,7 @@ public class FigureController {
     @PostMapping("/v1/images")
     public Response upload(Request request) {
         logger.info("Begin to generateImage ......");
+        logger.info("request : {}", request);
         if (processUtil.validateSuffix(request.getFileName())) {
             if (processUtil.generateImage(request.getPic(), request.getFileName())) {
                 logger.info("Begin to compress image ......");
@@ -46,6 +48,11 @@ public class FigureController {
             }
         }
         return new Response(Constant.BAD_REQUEST, Constant.MSG_BAD_REQUEST, null);
+    }
+
+    @GetMapping("/v1/urls")
+    public Response getUrls() {
+        return new Response(Constant.SUCCESS, Constant.MSG_SUCCESS, processUtil.getUrls());
     }
 
 }

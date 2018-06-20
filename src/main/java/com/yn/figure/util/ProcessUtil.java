@@ -1,5 +1,6 @@
 package com.yn.figure.util;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.yn.figure.message.CosConfig;
 import net.coobird.thumbnailator.Thumbnails;
@@ -15,7 +16,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -29,7 +29,9 @@ public class ProcessUtil {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private BlockingQueue<String> blockingQueue = new LinkedBlockingQueue<>(4);
+    private BlockingQueue<String> blockingQueue = new LinkedBlockingQueue<>(Constant.NUMBER);
+
+    private Set<String> set = new HashSet<>(Constant.NUMBER);
 
     private ProcessUtil() {
 
@@ -167,6 +169,7 @@ public class ProcessUtil {
     }
 
     public boolean validateSuffix(String filename) {
+        logger.info("validate filename: {}", filename);
         if (StringUtils.isEmpty(filename)) {
             return false;
         } else {
@@ -175,24 +178,66 @@ public class ProcessUtil {
         }
     }
 
+    /**
+     * 生成一个base64和一个最新的url
+     * @param str 最新的url
+     * @param base64 图片的base64
+     * @return 封装的json格式
+     */
     public JSONObject strToJSONObject(String str, String base64) {
-        if (blockingQueue != null && blockingQueue.size() == 4) {
-            try {
-                blockingQueue.take();
-            } catch (InterruptedException e) {
-                logger.error("remove value error: {}", e.getMessage());
+        if (set != null && set.size() == Constant.NUMBER) {
+            set.remove(str);
+            if (set.size() == Constant.NUMBER) {
+                String url = blockingQueue.poll();
+                set.remove(url);
+                set.add(str);
+                blockingQueue.offer(str);
+            }
+        } else if (set != null){
+            int size = set.size();
+            set.add(str);
+            if (size != set.size()) {
+                if (blockingQueue.size() == Constant.NUMBER) {
+                    blockingQueue.poll();
+                }
+                blockingQueue.offer(str);
             }
         }
-        if (blockingQueue != null) {
-            blockingQueue.offer(str);
-        }
-
         base64 = base64.replaceAll("[\\r\\n]", "");
         str = "{ \"" + "url" + "\"" +  ": \"" +  str + "\"" + "," + "\"" + "base64" + "\"" + ": \"" + base64 + "\"" +" }";
         logger.info("get image url: {}", str);
         return JSONObject.parseObject(str);
     }
 
+    /**
+     * 生成四个最近的url和一个最近的base64
+     * @param str 最新图片url
+     * @param base64 图片的base64形式
+     * @param number 需要的url数量
+     * @return 封装的json形式
+     */
+    public JSONObject objectToJSONObject(String str, String base64, int number) {
+        logger.info("begin to generate jsonobject ......");
+        base64 = base64.replaceAll("[\\r\\n]", "");
+        JSONArray array = new JSONArray();
+        JSONObject dataObject = new JSONObject();
+        if (blockingQueue != null && blockingQueue.size() == number) {
+            blockingQueue.poll();
+        }
+        if (blockingQueue != null) {
+            blockingQueue.offer(str);
+            array.addAll(blockingQueue);
+            dataObject.put("base64", base64);
+            dataObject.put("urls", array);
+        }
+        return dataObject;
+    }
+
+    /**
+     * 按照一定格式生成url
+     * @param fileName  文件名
+     * @return 文件url
+     */
     public String generateUrl(String fileName) {
         StringBuilder stringBuffer = new StringBuilder("http://");
         stringBuffer.append(cosConfig.getBucketName()).append(".").
@@ -201,4 +246,15 @@ public class ProcessUtil {
         return stringBuffer.toString();
     }
 
+    /**
+     * 获取最近上传的四张图片
+     * @return 最新上传的json格式url
+     */
+    public JSONObject getUrls() {
+        JSONArray array = new JSONArray();
+        JSONObject dataObject = new JSONObject();
+        array.addAll(blockingQueue);
+        dataObject.put("urls", array);
+        return dataObject;
+    }
 }

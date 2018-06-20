@@ -20,7 +20,7 @@ public class CorsConfig {
         //允许任何头
         corsConfiguration.addAllowedHeader("*");
         //允许任何方法
-        corsConfiguration.addAllowedMethod(HttpMethod.POST);
+        corsConfiguration.addAllowedMethod("*");
         return corsConfiguration;
     }
 

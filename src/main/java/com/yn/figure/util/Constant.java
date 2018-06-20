@@ -6,6 +6,11 @@ package com.yn.figure.util;
 public class Constant {
 
     /**
+     * 后端返回的Url数量
+     */
+    public final static int NUMBER = 4;
+
+    /**
      * post 请求返回状态码
      */
     public final static int CREATED = 201;
