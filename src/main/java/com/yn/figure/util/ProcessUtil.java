@@ -204,8 +204,8 @@ public class ProcessUtil {
             }
         }
         base64 = base64.replaceAll("[\\r\\n]", "");
-        str = "{ \"" + "url" + "\"" +  ": \"" +  str + "\"" + "," + "\"" + "base64" + "\"" + ": \"" + base64 + "\"" +" }";
         logger.info("get image url: {}", str);
+        str = "{ \"" + "url" + "\"" +  ": \"" +  str + "\"" + "," + "\"" + "base64" + "\"" + ": \"" + base64 + "\"" +" }";
         return JSONObject.parseObject(str);
     }
 

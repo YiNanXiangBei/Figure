@@ -6,8 +6,8 @@
 	<groupId>com.yn</groupId>
 	<artifactId>figure</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<!--<packaging>jar</packaging>-->
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
+	<!--<packaging>war</packaging>-->
 
 
 	<name>figure</name>
@@ -64,11 +64,11 @@
 			<version>1.1.15</version>
 		</dependency>
 
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>provided</scope>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.springframework.boot</groupId>-->
+            <!--<artifactId>spring-boot-starter-tomcat</artifactId>-->
+            <!--<scope>provided</scope>-->
+        <!--</dependency>-->
 
 	</dependencies>
 
