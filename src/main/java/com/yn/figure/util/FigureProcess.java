@@ -26,12 +26,12 @@ public class FigureProcess {
 
     private Logger logger = LoggerFactory.getLogger(getClass());
 
-    public void upload(Request request) {
+    public void upload(String fileName) {
         try {
-            File localFile = new File(cosConfig.getPath() + request.getFileName());
+            File localFile = new File(cosConfig.getPath() + fileName);
             cosClient = factory.getClient();
             PutObjectRequest putObjectRequest = new PutObjectRequest(cosConfig.getBucketName(),
-                    request.getFileName(), localFile);
+                    fileName, localFile);
             cosClient.putObject(putObjectRequest);
             logger.info("upload image success!");
         } catch (Exception e) {

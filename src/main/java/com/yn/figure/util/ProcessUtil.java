@@ -16,6 +16,9 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -256,5 +259,16 @@ public class ProcessUtil {
         array.addAll(blockingQueue);
         dataObject.put("urls", array);
         return dataObject;
+    }
+
+    public boolean generateStreamToImage(byte []bytes, String fileName) {
+        Path path = Paths.get(cosConfig.getPath() + fileName);
+        try {
+            Files.write(path, bytes);
+            return true;
+        } catch (IOException e) {
+            logger.error("File transfer error: {}", e.getMessage());
+        }
+        return false;
     }
 }
